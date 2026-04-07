@@ -8,9 +8,9 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ─── Base de datos SQLite ───────────────────────────────────────────
+// ─── Base de datos PostgreSQL (Supabase) ───────────────────────────
 builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ─── Autenticación JWT ─────────────────────────────────────────────
 var jwtKey = builder.Configuration["JwtSettings:SecretKey"]!;
