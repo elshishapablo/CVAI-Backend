@@ -101,11 +101,8 @@ using (var scope = app.Services.CreateScope())
 // ─── Pipeline de middlewares ───────────────────────────────────────
 app.UseMiddleware<ErrorHandlingMiddleware>(); // Manejo global de errores
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseCors();
 app.UseAuthentication();
