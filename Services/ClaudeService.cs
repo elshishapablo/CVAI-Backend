@@ -1,13 +1,13 @@
 using System.Text.Json;
-using Anthropic.SDK;
-using Anthropic.SDK.Messaging;
+using OpenAI;
+using OpenAI.Chat;
 using CVMatchAI.API.Models;
 
 namespace CVMatchAI.API.Services;
 
 public class ClaudeService : IClaudeService
 {
-    private readonly AnthropicClient _client;
+    private readonly ChatClient? _client;
     private readonly ILogger<ClaudeService> _logger;
     private readonly bool _mockMode;
 
@@ -18,71 +18,70 @@ public class ClaudeService : IClaudeService
 
     public ClaudeService(IConfiguration config, ILogger<ClaudeService> logger)
     {
-        _logger   = logger;
-        _mockMode = string.IsNullOrWhiteSpace(config["Anthropic:ApiKey"]) ||
-                    config["Anthropic:ApiKey"] == "YOUR_API_KEY_HERE";
+        _logger = logger;
+
+        var apiKey = config["OpenAI:ApiKey"];
+        _mockMode = string.IsNullOrWhiteSpace(apiKey) || apiKey == "YOUR_API_KEY_HERE";
 
         if (!_mockMode)
-            _client = new AnthropicClient(config["Anthropic:ApiKey"]!);
+        {
+            var openAiClient = new OpenAIClient(apiKey!);
+            _client = openAiClient.GetChatClient("gpt-4o-mini");
+            _logger.LogInformation("OpenAI mode active (gpt-4o-mini).");
+        }
         else
-            _logger.LogWarning("ClaudeService: MODO MOCK activo (no hay API key configurada).");
+        {
+            _logger.LogWarning("AI Service: MOCK MODE active (no API key configured).");
+        }
     }
 
     public async Task<AnalysisResult> AnalyzeAsync(string cvText, string jobDescription)
     {
-        // ── Modo mock: devuelve datos de ejemplo sin llamar a la API ──
         if (_mockMode)
             return await Task.FromResult(BuildMockResult());
 
-        // ── Modo real: llama a Claude AI ──
         var prompt = BuildPrompt(cvText, jobDescription);
 
-        // Reintento: intenta hasta 2 veces si el JSON no es válido
+        // Intenta hasta 2 veces; si falla, devuelve mock
         for (int attempt = 1; attempt <= 2; attempt++)
         {
             try
             {
-                var responseText = await CallClaudeAsync(prompt);
-                var result       = ParseResponse(responseText);
+                var responseText = await CallOpenAIAsync(prompt);
+                var result = ParseResponse(responseText);
                 if (result is not null) return result;
 
-                _logger.LogWarning("Intento {Attempt}: respuesta de Claude no es JSON válido.", attempt);
+                _logger.LogWarning("Attempt {Attempt}: response was not valid JSON.", attempt);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Intento {Attempt}: error al llamar a Claude.", attempt);
-                if (attempt == 2) throw;
+                _logger.LogError(ex, "Attempt {Attempt}: error calling OpenAI.", attempt);
+                if (attempt == 2)
+                {
+                    _logger.LogWarning("OpenAI failed after 2 attempts. Falling back to mock result.");
+                    return BuildMockResult();
+                }
             }
         }
 
-        throw new InvalidOperationException("Claude no devolvió un resultado válido tras 2 intentos.");
+        // Fallback final a mock
+        _logger.LogWarning("Could not get valid AI response. Returning mock result.");
+        return BuildMockResult();
     }
 
     // ──────────────────────────────────────────────────────────────
     //  Métodos privados
     // ──────────────────────────────────────────────────────────────
 
-    private async Task<string> CallClaudeAsync(string prompt)
+    private async Task<string> CallOpenAIAsync(string prompt)
     {
-        var request = new MessageParameters
+        var messages = new List<ChatMessage>
         {
-            Model     = "claude-sonnet-4-20250514",
-            MaxTokens = 2000,
-            Messages  = new List<Message>
-            {
-                new Message
-                {
-                    Role    = RoleType.User,
-                    Content = new List<ContentBase>
-                    {
-                        new TextContent { Text = prompt }
-                    }
-                }
-            }
+            new UserChatMessage(prompt)
         };
 
-        var response = await _client.Messages.GetClaudeMessageAsync(request);
-        return response.Content.OfType<TextContent>().FirstOrDefault()?.Text ?? "{}";
+        var response = await _client!.CompleteChatAsync(messages);
+        return response.Value.Content[0].Text ?? "{}";
     }
 
     private static string BuildPrompt(string cvText, string jobDescription)
@@ -129,7 +128,6 @@ OFERTA DE TRABAJO:
 
     private static AnalysisResult? ParseResponse(string responseText)
     {
-        // Eliminar bloques de código markdown si los incluye (```json ... ```)
         var text = responseText.Trim();
         if (text.StartsWith("```"))
         {
@@ -149,8 +147,7 @@ OFERTA DE TRABAJO:
     }
 
     /// <summary>
-    /// Resultado de ejemplo para probar la plataforma sin API key.
-    /// Simula un análisis realista de un perfil de desarrollador.
+    /// Resultado de ejemplo cuando no hay API key o falla la IA.
     /// </summary>
     private static AnalysisResult BuildMockResult() => new()
     {

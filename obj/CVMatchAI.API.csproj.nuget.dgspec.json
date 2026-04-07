@@ -50,10 +50,6 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
-            "Anthropic.SDK": {
-              "target": "Package",
-              "version": "[3.9.2, )"
-            },
             "BCrypt.Net-Next": {
               "target": "Package",
               "version": "[4.0.3, )"
@@ -75,6 +71,10 @@
             "Microsoft.EntityFrameworkCore.Sqlite": {
               "target": "Package",
               "version": "[8.0.0, )"
+            },
+            "OpenAI": {
+              "target": "Package",
+              "version": "[2.1.0, )"
             },
             "PdfPig": {
               "target": "Package",

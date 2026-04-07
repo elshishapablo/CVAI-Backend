@@ -1,10 +1,9 @@
 {
   "version": 2,
-  "dgSpecHash": "oAaOePAZiC8=",
+  "dgSpecHash": "S1oocuudHnE=",
   "success": true,
   "projectFilePath": "C:\\IACV\\CVMatchAI.API\\CVMatchAI.API.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\cmelg\\.nuget\\packages\\anthropic.sdk\\4.0.0\\anthropic.sdk.4.0.0.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\8.0.0\\microsoft.aspnetcore.authentication.jwtbearer.8.0.0.nupkg.sha512",
@@ -42,6 +41,7 @@
     "C:\\Users\\cmelg\\.nuget\\packages\\microsoft.identitymodel.tokens\\7.0.3\\microsoft.identitymodel.tokens.7.0.3.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\microsoft.openapi\\1.6.14\\microsoft.openapi.1.6.14.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\mono.texttemplating\\2.2.1\\mono.texttemplating.2.2.1.nupkg.sha512",
+    "C:\\Users\\cmelg\\.nuget\\packages\\openai\\2.1.0\\openai.2.1.0.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\pdfpig\\0.1.9\\pdfpig.0.1.9.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\sqlitepclraw.bundle_e_sqlite3\\2.1.6\\sqlitepclraw.bundle_e_sqlite3.2.1.6.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\sqlitepclraw.core\\2.1.6\\sqlitepclraw.core.2.1.6.nupkg.sha512",
@@ -51,6 +51,7 @@
     "C:\\Users\\cmelg\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\6.6.2\\swashbuckle.aspnetcore.swagger.6.6.2.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\6.6.2\\swashbuckle.aspnetcore.swaggergen.6.6.2.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\swashbuckle.aspnetcore.swaggerui\\6.6.2\\swashbuckle.aspnetcore.swaggerui.6.6.2.nupkg.sha512",
+    "C:\\Users\\cmelg\\.nuget\\packages\\system.clientmodel\\1.2.1\\system.clientmodel.1.2.1.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\system.codedom\\4.4.0\\system.codedom.4.4.0.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\system.collections.immutable\\6.0.0\\system.collections.immutable.6.0.0.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\system.composition\\6.0.0\\system.composition.6.0.0.nupkg.sha512",
@@ -59,9 +60,11 @@
     "C:\\Users\\cmelg\\.nuget\\packages\\system.composition.hosting\\6.0.0\\system.composition.hosting.6.0.0.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\system.composition.runtime\\6.0.0\\system.composition.runtime.6.0.0.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\system.composition.typedparts\\6.0.0\\system.composition.typedparts.6.0.0.nupkg.sha512",
+    "C:\\Users\\cmelg\\.nuget\\packages\\system.diagnostics.diagnosticsource\\6.0.1\\system.diagnostics.diagnosticsource.6.0.1.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\system.identitymodel.tokens.jwt\\7.0.3\\system.identitymodel.tokens.jwt.7.0.3.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\system.io.pipelines\\6.0.3\\system.io.pipelines.6.0.3.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\system.memory\\4.5.3\\system.memory.4.5.3.nupkg.sha512",
+    "C:\\Users\\cmelg\\.nuget\\packages\\system.memory.data\\6.0.0\\system.memory.data.6.0.0.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\system.reflection.metadata\\6.0.1\\system.reflection.metadata.6.0.1.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\6.0.0\\system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\system.text.encoding.codepages\\6.0.0\\system.text.encoding.codepages.6.0.0.nupkg.sha512",
@@ -69,16 +72,5 @@
     "C:\\Users\\cmelg\\.nuget\\packages\\system.text.json\\8.0.0\\system.text.json.8.0.0.nupkg.sha512",
     "C:\\Users\\cmelg\\.nuget\\packages\\system.threading.channels\\6.0.0\\system.threading.channels.6.0.0.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "NU1603",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "CVMatchAI.API depende de Anthropic.SDK (>= 3.9.2), pero no se encontró Anthropic.SDK 3.9.2. Anthropic.SDK 4.0.0 se resolvió en su lugar.",
-      "libraryId": "Anthropic.SDK",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    }
-  ]
+  "logs": []
 }

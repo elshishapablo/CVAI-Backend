@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CVMatchAI.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2ed9ecaebe73db70c0ab622b49fe30c3f16dc649")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7b21a0131264beac5a2375329cac9ae8c984bb87")]
 [assembly: System.Reflection.AssemblyProductAttribute("CVMatchAI.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CVMatchAI.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
