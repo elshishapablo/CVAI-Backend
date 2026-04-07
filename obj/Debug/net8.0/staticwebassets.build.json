@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "LdivcCZ92cRkXqankeNKAoZJ0OhjA7xg1pyJP8PpgBY=",
+  "Source": "CVMatchAI.API",
+  "BasePath": "_content/CVMatchAI.API",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
