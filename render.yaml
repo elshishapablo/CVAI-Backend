@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: cvai-backend
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: JwtSettings__SecretKey
+        sync: false
+      - key: JwtSettings__Issuer
+        value: CVMatchAPI
+      - key: JwtSettings__Audience
+        value: CVMatchClient
+      - key: GoogleAI__ApiKey
+        sync: false
+      - key: GoogleAI__Model
+        value: gemini-2.0-flash

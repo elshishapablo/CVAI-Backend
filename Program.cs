@@ -8,6 +8,11 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Render (y otros PaaS) inyectan PORT; si no hay, se queda el de launchSettings / 8080
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(port))
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 // ─── Base de datos PostgreSQL (Supabase) ───────────────────────────
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -46,6 +51,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // ─── Servicios de la aplicación (con interfaces para mejor testabilidad) ───
+builder.Services.AddHttpClient("gemini");
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAnalysisService, AnalysisService>();
 builder.Services.AddSingleton<IPdfService, PdfService>();
@@ -107,6 +113,7 @@ app.UseSwaggerUI();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapControllers();
 
 app.Run();

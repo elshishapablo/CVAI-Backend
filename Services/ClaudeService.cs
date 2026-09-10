@@ -1,14 +1,15 @@
+using System.Net.Http.Json;
 using System.Text.Json;
-using OpenAI;
-using OpenAI.Chat;
 using CVMatchAI.API.Models;
 
 namespace CVMatchAI.API.Services;
 
 public class ClaudeService : IClaudeService
 {
-    private readonly ChatClient? _client;
+    private readonly HttpClient _http;
     private readonly ILogger<ClaudeService> _logger;
+    private readonly string? _apiKey;
+    private readonly string _model;
     private readonly bool _mockMode;
 
     private static readonly JsonSerializerOptions JsonOpts = new()
@@ -16,38 +17,33 @@ public class ClaudeService : IClaudeService
         PropertyNameCaseInsensitive = true
     };
 
-    public ClaudeService(IConfiguration config, ILogger<ClaudeService> logger)
+    public ClaudeService(IConfiguration config, IHttpClientFactory httpFactory, ILogger<ClaudeService> logger)
     {
         _logger = logger;
+        _http   = httpFactory.CreateClient("gemini");
 
-        var apiKey = config["OpenAI:ApiKey"];
-        _mockMode = string.IsNullOrWhiteSpace(apiKey) || apiKey == "YOUR_API_KEY_HERE";
+        _apiKey = config["GoogleAI:ApiKey"];
+        _model  = config["GoogleAI:Model"] ?? "gemini-2.0-flash";
+        _mockMode = string.IsNullOrWhiteSpace(_apiKey) || _apiKey == "YOUR_API_KEY_HERE";
 
         if (!_mockMode)
-        {
-            var openAiClient = new OpenAIClient(apiKey!);
-            _client = openAiClient.GetChatClient("gpt-4o-mini");
-            _logger.LogInformation("OpenAI mode active (gpt-4o-mini).");
-        }
+            _logger.LogInformation("Google AI (Gemini) mode active ({Model}).", _model);
         else
-        {
-            _logger.LogWarning("AI Service: MOCK MODE active (no API key configured).");
-        }
+            _logger.LogWarning("AI Service: MOCK MODE active (no GoogleAI:ApiKey configured).");
     }
 
     public async Task<AnalysisResult> AnalyzeAsync(string cvText, string jobDescription)
     {
         if (_mockMode)
-            return await Task.FromResult(BuildMockResult());
+            return BuildMockResult();
 
         var prompt = BuildPrompt(cvText, jobDescription);
 
-        // Intenta hasta 2 veces; si falla, devuelve mock
         for (int attempt = 1; attempt <= 2; attempt++)
         {
             try
             {
-                var responseText = await CallOpenAIAsync(prompt);
+                var responseText = await CallGeminiAsync(prompt);
                 var result = ParseResponse(responseText);
                 if (result is not null) return result;
 
@@ -55,33 +51,51 @@ public class ClaudeService : IClaudeService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Attempt {Attempt}: error calling OpenAI.", attempt);
+                _logger.LogError(ex, "Attempt {Attempt}: error calling Gemini.", attempt);
                 if (attempt == 2)
                 {
-                    _logger.LogWarning("OpenAI failed after 2 attempts. Falling back to mock result.");
+                    _logger.LogWarning("Gemini failed after 2 attempts. Falling back to mock result.");
                     return BuildMockResult();
                 }
             }
         }
 
-        // Fallback final a mock
         _logger.LogWarning("Could not get valid AI response. Returning mock result.");
         return BuildMockResult();
     }
 
-    // ──────────────────────────────────────────────────────────────
-    //  Métodos privados
-    // ──────────────────────────────────────────────────────────────
-
-    private async Task<string> CallOpenAIAsync(string prompt)
+    private async Task<string> CallGeminiAsync(string prompt)
     {
-        var messages = new List<ChatMessage>
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
+
+        var payload = new
         {
-            new UserChatMessage(prompt)
+            contents = new[]
+            {
+                new { parts = new[] { new { text = prompt } } }
+            },
+            generationConfig = new
+            {
+                temperature = 0.3,
+                responseMimeType = "application/json"
+            }
         };
 
-        var response = await _client!.CompleteChatAsync(messages);
-        return response.Value.Content[0].Text ?? "{}";
+        using var response = await _http.PostAsJsonAsync(url, payload);
+        var body = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+            throw new HttpRequestException($"Gemini HTTP {(int)response.StatusCode}: {body}");
+
+        using var doc = JsonDocument.Parse(body);
+        var text = doc.RootElement
+            .GetProperty("candidates")[0]
+            .GetProperty("content")
+            .GetProperty("parts")[0]
+            .GetProperty("text")
+            .GetString();
+
+        return text ?? "{}";
     }
 
     private static string BuildPrompt(string cvText, string jobDescription)
@@ -146,9 +160,6 @@ OFERTA DE TRABAJO:
         }
     }
 
-    /// <summary>
-    /// Resultado de ejemplo cuando no hay API key o falla la IA.
-    /// </summary>
     private static AnalysisResult BuildMockResult() => new()
     {
         CompatibilityScore = 72,
