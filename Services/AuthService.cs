@@ -82,12 +82,14 @@ public class AuthService : IAuthService
             new Claim("plan", user.Plan)
         };
 
+        if (!int.TryParse(_config["JwtSettings:ExpirationDays"], out var days) || days <= 0)
+            days = 7;
+
         var token = new JwtSecurityToken(
-            issuer:            _config["JwtSettings:Issuer"],
-            audience:          _config["JwtSettings:Audience"],
+            issuer:            _config["JwtSettings:Issuer"] ?? "CVMatchAPI",
+            audience:          _config["JwtSettings:Audience"] ?? "CVMatchClient",
             claims:            claims,
-            expires:           DateTime.UtcNow.AddDays(
-                                   int.Parse(_config["JwtSettings:ExpirationDays"] ?? "7")),
+            expires:           DateTime.UtcNow.AddDays(days),
             signingCredentials: creds
         );
 

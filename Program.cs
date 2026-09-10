@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
+// Npgsql 8 rechaza DateTime.UtcNow en columnas "timestamp without time zone"
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Render (y otros PaaS) inyectan PORT; si no hay, se queda el de launchSettings / 8080
