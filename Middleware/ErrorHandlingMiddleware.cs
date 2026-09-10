@@ -45,9 +45,7 @@ public class ErrorHandlingMiddleware
 
         var response = new
         {
-            message = statusCode == HttpStatusCode.InternalServerError
-                ? "Ocurrió un error interno. Por favor inténtalo de nuevo."
-                : exception.Message,
+            message = exception.GetBaseException().Message,
             statusCode = (int)statusCode
         };
 

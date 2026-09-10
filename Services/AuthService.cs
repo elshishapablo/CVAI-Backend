@@ -26,18 +26,26 @@ public class AuthService : IAuthService
         if (await _db.Users.AnyAsync(u => u.Email == dto.Email.ToLower()))
             throw new InvalidOperationException("Ya existe una cuenta con ese email.");
 
+        var now = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
         var user = new User
         {
             Name          = dto.Name.Trim(),
             Email         = dto.Email.ToLower().Trim(),
             PasswordHash  = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             Plan          = "free",
-            LastResetDate = DateTime.UtcNow,
-            CreatedAt     = DateTime.UtcNow
+            LastResetDate = now,
+            CreatedAt     = now
         };
 
         _db.Users.Add(user);
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("No se pudo guardar el usuario: " + ex.GetBaseException().Message);
+        }
 
         return BuildAuthResponse(user);
     }
@@ -71,7 +79,10 @@ public class AuthService : IAuthService
 
     public string GenerateJwt(User user)
     {
-        var key   = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JwtSettings:SecretKey"]!));
+        var jwtSecret = _config["JwtSettings:SecretKey"] ?? "";
+        if (jwtSecret.Length < 32)
+            jwtSecret = jwtSecret.PadRight(32, '0');
+        var key   = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]

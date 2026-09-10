@@ -4,6 +4,8 @@ using CVMatchAI.API.Middleware;
 using CVMatchAI.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.IdentityModel.Tokens;
 
 // Npgsql 8 rechaza DateTime.UtcNow en columnas "timestamp without time zone"
@@ -17,11 +19,22 @@ if (!string.IsNullOrWhiteSpace(port))
     builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 // ─── Base de datos PostgreSQL (Supabase) ───────────────────────────
+var dbCs = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Falta ConnectionStrings:DefaultConnection");
+var npgsqlCs = new Npgsql.NpgsqlConnectionStringBuilder(dbCs)
+{
+    MaxAutoPrepare = 0,
+    Multiplexing   = false,
+    SslMode        = Npgsql.SslMode.Require,
+    TrustServerCertificate = true,
+};
 builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    opt.UseNpgsql(npgsqlCs.ConnectionString));
 
 // ─── Autenticación JWT ─────────────────────────────────────────────
-var jwtKey = builder.Configuration["JwtSettings:SecretKey"]!;
+var jwtKey = builder.Configuration["JwtSettings:SecretKey"] ?? "";
+if (jwtKey.Length < 32)
+    jwtKey = jwtKey.PadRight(32, '0');
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -100,11 +113,20 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// ─── Crear / migrar la base de datos automáticamente al iniciar ────
+// ─── Crear tablas si no existen (EnsureCreated no sirve si public ya tiene tablas) ──
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
+    var creator = db.GetService<IRelationalDatabaseCreator>();
+    try
+    {
+        creator.CreateTables();
+        app.Logger.LogInformation("Tablas de la aplicación creadas.");
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogWarning(ex, "CreateTables: {Message}", ex.Message);
+    }
 }
 
 // ─── Pipeline de middlewares ───────────────────────────────────────
@@ -117,6 +139,18 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+app.MapGet("/health/db", async (AppDbContext db) =>
+{
+    try
+    {
+        var count = await db.Users.CountAsync();
+        return Results.Ok(new { status = "ok", users = count });
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(new { status = "error", detail = ex.GetBaseException().Message }, statusCode: 500);
+    }
+});
 app.MapControllers();
 
 app.Run();
